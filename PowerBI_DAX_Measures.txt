@@ -1,0 +1,41 @@
+-- Create these as measures in Power BI (Modeling > New measure)
+Total Sales = SUM('Nassau Candy Distributor'[Sales])
+
+Total Cost = SUM('Nassau Candy Distributor'[Cost])
+
+Gross Profit = [Total Sales] - [Total Cost]
+
+Gross Margin % = DIVIDE([Gross Profit], [Total Sales], BLANK())
+
+Cost to Sales % = DIVIDE([Total Cost], [Total Sales], BLANK())
+
+Product Count = DISTINCTCOUNT('Nassau Candy Distributor'[Product ID])
+
+Sales Contribution % =
+DIVIDE(
+    [Total Sales],
+    CALCULATE([Total Sales], REMOVEFILTERS('Nassau Candy Distributor'[Product Name])),
+    BLANK()
+)
+
+Profit Contribution % =
+DIVIDE(
+    [Gross Profit],
+    CALCULATE([Gross Profit], REMOVEFILTERS('Nassau Candy Distributor'[Product Name])),
+    BLANK()
+)
+
+Products Below Margin Threshold =
+VAR Threshold = SELECTEDVALUE('Margin Threshold'[Margin %], 20)
+RETURN
+COUNTROWS(
+    FILTER(
+        VALUES('Nassau Candy Distributor'[Product Name]),
+        CALCULATE([Gross Margin %]) < Threshold
+    )
+)
+
+-- Optional calculated table for the slider:
+Margin Threshold = GENERATESERIES(0, 60, 5)
+-- Format [Margin %] as Percentage only if you change the generated values to decimals.
+-- With the 0–60 scale above, use the selected value as percentage points (e.g., 20 means 20%).
